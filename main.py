@@ -27,32 +27,46 @@ def insert_fact(lis):
             KG[prev] = []
         KG[prev].append(word)
 
+def check_fact(lis):
+    for i, word in enumerate(lis):
+        if KG.has_key(word):
+            for j, word2 in enumerate(lis):
+                if word2 in KG[word]:
+                    return True
+    return False
 
-def process(TITLE, sentences):
-    if len(sentences) <= 1:
+
+def process(TITLE, sentences, train):
+    if len(sentences) < 1:
         return
         
     for sent in sentences:
-        text = word_tokenize(sent)
+        text = word_tokenize(sent.lower())
         tagged = nltk.pos_tag(text)
         lis = []
         for i, (word, tag) in enumerate(tagged):
+            word = word.lower()
             if tag in KG_tag_set:
                 if tag == 'PRP':
                     lis.append(TITLE)
                 else:
                     lis.append(word)
-        insert_fact(lis)
-
+        if(train==1):
+            print(lis)
+            insert_fact(lis)
+        else:
+            print(lis)
+            return check_fact(lis)
+            
 
 def get_sentences(text):
     sent_detector = nltk.data.load('tokenizers/punkt/english.pickle')
-    return sent_detector.tokenize(text.strip())
+    return sent_detector.tokenize(text.strip().lower())
 
 
 def create_data():
     title = "Tom"
-    data = ["Tom is a boy", "He likes to play football", "He is a good basket ball player"]
+    data = ["Tom is a boy", "he likes to play football", "he is a good basket ball player"]
     return title, data
 
 
@@ -62,7 +76,7 @@ def main():
 
     if CUSTOM_DATA:
         tit, data = create_data()
-        process(tit, data)
+        process(tit, data, 1)
     else:
         for f in os.listdir(TRAIN_DIR):
             print "Creating Knowledge GRAPH"
@@ -74,7 +88,7 @@ def main():
                 line = line.decode("UTF-8")
                 if isTitle:
                     print title
-                    process(title, sentences)
+                    process(title, sentences, 1)
     
                     title = line
                     isTitle = False
@@ -85,11 +99,18 @@ def main():
                     isTitle = True
                 else:
                     sentences += get_sentences(line)
-
+    
+    sentence = "Start!"
+    while(1):
+        sentence = raw_input('Enter a query. Press Q to quit\n')
+        if sentence == 'Q':
+            break
+        answer = process('',[sentence],0)
+        print(answer)
 
 if __name__ == "__main__":
     main()
-    pdb.set_trace()
+    #pdb.set_trace()
 
 
 
